@@ -1,0 +1,6 @@
+#pmtiels binary
+pmtiles
+
+# ignore large data
+tilemaker/coastline/
+data/
