@@ -1,6 +1,6 @@
-# Repository Overview
+# LocalTileCraft
 
-This repository serves as a practical example of the process for locally generating, editing, and exporting vector tiles from OpenStreetMap (OSM) data.
+This repository is a practical example of the process for locally generating, editing, and exporting vector tiles from OpenStreetMap (OSM) data.
 
 ## Setup
 
