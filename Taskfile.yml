@@ -1,0 +1,67 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  #install-tilemaker:
+  # need to build from source. see https://github.com/systemed/tilemaker#installing
+
+  setup-tilemaker:
+    cmds:
+      - wget https://osmdata.openstreetmap.de/download/water-polygons-split-4326.zip
+      # TODO: unzip and mv to coastline/ dir
+  
+  dl-pbf:
+    cmds: 
+      - wget -P data https://download.geofabrik.de/asia/japan/kyushu-latest.osm.pbf
+
+  make-mbtiles:
+    dir: tilemaker/
+    cmds:
+      - tilemaker --input ../data/kyushu-latest.osm.pbf --output ../data/kyushu-latest.mbtiles --config config/config-openmaptiles.json --process config/process-openmaptiles-kumejima.lua
+
+  install-tile-server:
+    cmds:
+      - pnpm install -g tileserver-gl-light
+
+  preview-mbtiles:
+    cmds:
+      # `--no-cors` option does not work: see also: [link to issue]
+      - tileserver-gl-light data/kyushu-latest.mbtiles --port 8081
+
+  install-pmtiles:
+    cmds:
+      - curl -sL -o - https://github.com/protomaps/go-pmtiles/releases/download/v1.8.0/go-pmtiles-1.8.0_Darwin_arm64.zip | bsdtar xf -
+      - chmod +x pmtiles
+
+  convert-pmtiles:
+    cmds:
+      - ./pmtiles convert data/kyushu-latest.mbtiles data/kyushu-latest.pmtiles
+
+  make-pmtiles:
+    cmds:
+      - task: make-mbtiles
+      - task: convert-pmtiles
+
+  serve-pmtiles:
+    cmds: 
+      - ./pmtiles serve ./data --cors "*" --port 8080
+
+  run-maputnik:
+    cmds:
+      - docker run -it --rm -p 8888:8888 maputnik/editor
+  
+  open-maputnik:
+    cmds:
+      - open -u http:localhost:8888
+    
+  run-editor:
+    deps: [serve-pmtiles, run-maputnik, open-maputnik]
+
+  serve-export:
+    dir: maplibre-gl-export.water-gis.com/
+    cmds:
+      - pnpm dev
+
+  run-export:
+    deps: [serve-pmtiles, serve-export]
