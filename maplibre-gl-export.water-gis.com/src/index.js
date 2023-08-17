@@ -8,12 +8,11 @@ import {
 	DPI
 } from '@watergis/maplibre-gl-export';
 
+import style from '../../style/osmt-kumejima.json' // change style here
+
 const map = new Map({
 	container: 'map',
-	style: 'https://narwassco.github.io/mapbox-stylefiles/unvt/style.json',
-	center: [35.87063, -1.08551],
-	zoom: 12,
-	hash: true
+	style: style,
 });
 map.addControl(new NavigationControl({}), 'top-right');
 map.addControl(
