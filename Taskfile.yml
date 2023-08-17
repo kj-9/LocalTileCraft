@@ -11,6 +11,9 @@ tasks:
       - wget https://osmdata.openstreetmap.de/download/water-polygons-split-4326.zip
       # TODO: unzip and mv to coastline/ dir
   
+  setup:
+    deps: [setup-tilemaker]
+
   dl-pbf:
     cmds: 
       - wget -P data https://download.geofabrik.de/asia/japan/kyushu-latest.osm.pbf
