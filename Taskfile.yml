@@ -9,7 +9,9 @@ tasks:
   setup-tilemaker:
     cmds:
       - wget https://osmdata.openstreetmap.de/download/water-polygons-split-4326.zip
-      # TODO: unzip and mv to coastline/ dir
+      - unzip water-polygons-split-4326.zip
+      - mv water-polygons-split-4326/water_polygons.* tilemaker/coastline
+      - rm -rf water-polygons-split-4326.zip water-polygons-split-4326/
   
   setup:
     deps: [setup-tilemaker]
@@ -62,7 +64,7 @@ tasks:
     deps: [serve-pmtiles, run-maputnik, open-maputnik]
 
   serve-export:
-    dir: maplibre-gl-export.water-gis.com/
+    dir: front/
     cmds:
       - pnpm dev
 
