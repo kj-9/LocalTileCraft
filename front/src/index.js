@@ -8,8 +8,9 @@ import {
 	DPI
 } from '@watergis/maplibre-gl-export';
 
-import style from '../../style/osmt-kumejima.json' // change style here
+import style from './osmt-kumejima.json' // change style here
 
+// TODO：pmtilesとして読み込むには、pmtiles://のようなプロトコルを付ける必要がある
 const map = new Map({
 	container: 'map',
 	style: style,
