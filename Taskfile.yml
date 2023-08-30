@@ -6,30 +6,42 @@ tasks:
   #install-tilemaker:
   # need to build from source. see https://github.com/systemed/tilemaker#installing
 
-  setup-tilemaker:
+  dl-water:
     cmds:
       - wget https://osmdata.openstreetmap.de/download/water-polygons-split-4326.zip
       - unzip water-polygons-split-4326.zip
       - mv water-polygons-split-4326/water_polygons.* tilemaker/coastline
       - rm -rf water-polygons-split-4326.zip water-polygons-split-4326/
-  
-  setup:
-    deps: [setup-tilemaker]
-
+    status:
+      - test -f tilemaker/coastline/water_polygons.shp
+ 
   dl-pbf:
     cmds: 
       - wget -P data https://download.geofabrik.de/asia/japan/kyushu-latest.osm.pbf
+    status:
+      - test -f data/kyushu-latest.osm.pbf
 
   make-mbtiles:
     dir: tilemaker/
+    deps: [dl-water, dl-pbf] # install-tilemaker
     cmds:
       - tilemaker --input ../data/kyushu-latest.osm.pbf --output ../data/kyushu-latest.mbtiles --config config/config-openmaptiles.json --process config/process-openmaptiles-kumejima.lua
+    sources:
+      - tilemaker/config/config-openmaptiles.json
+      - tilemaker/config/process-openmaptiles-kumejima.lua
+    generates:
+      - data/kyushu-latest.mbtiles
+    method: timestamp
 
-  install-tile-server:
+
+  install-tileserver:
     cmds:
       - pnpm install -g tileserver-gl-light
+    status: 
+      - tileserver-gl-light --version
 
   preview-mbtiles:
+    deps: [make-mbtiles, install-tileserver]
     cmds:
       # `--no-cors` option does not work: see also: [link to issue]
       - tileserver-gl-light data/kyushu-latest.mbtiles --port 8081
@@ -38,30 +50,32 @@ tasks:
     cmds:
       - curl -sL -o - https://github.com/protomaps/go-pmtiles/releases/download/v1.8.0/go-pmtiles-1.8.0_Darwin_arm64.zip | bsdtar xf -
       - chmod +x pmtiles
-
-  convert-pmtiles:
-    cmds:
-      - ./pmtiles convert data/kyushu-latest.mbtiles data/kyushu-latest.pmtiles
+    status:
+      - ./pmtiles
 
   make-pmtiles:
+    deps: [install-pmtiles, make-mbtiles]
     cmds:
-      - task: make-mbtiles
-      - task: convert-pmtiles
+      - ./pmtiles convert data/kyushu-latest.mbtiles data/kyushu-latest.pmtiles
+    sources:
+      - data/kyushu-latest.mbtiles
+    generates:
+      - data/kyushu-latest.pmtiles
+    method: timestamp
 
   serve-pmtiles:
+    deps: [make-pmtiles]
     cmds: 
       - ./pmtiles serve ./data --cors "*" --port 8080
 
   run-maputnik:
     cmds:
       - docker run -it --rm -p 8888:8888 maputnik/editor
-  
-  open-maputnik:
-    cmds:
-      - open -u http:localhost:8888
-    
+      
   run-editor:
-    deps: [serve-pmtiles, run-maputnik, open-maputnik]
+    deps: [serve-pmtiles, run-maputnik]
+    cmds:
+      - open -u http://localhost:8888
 
   serve-export:
     dir: front/
@@ -70,3 +84,14 @@ tasks:
 
   run-export:
     deps: [serve-pmtiles, serve-export]
+
+  build-front:
+    dir: front/
+    cmds:
+      - pnpm build
+
+  preview-front:
+    dir: front/
+    deps: [build-front]
+    cmds:
+      - pnpm preview
