@@ -11,11 +11,17 @@ import * as pmtiles from "pmtiles";
 
 import style from '../../style/osmt-kumejima.json' // change style here
 
+// URL for pmtiles file hosted on the web
+// pmtiles file is at public folder in source code, and it is copied to dist folder when build
+// it should hosted on the web server at the same location as index.html
+const pmtilesURL = `pmtiles://${location.href}/${import.meta.env.VITE_BASE_NAME}.pmtiles` 
+
+console.log(`Loading pmtiles at ${pmtilesURL}...`)
 // apply pmtiles source
 const pmtilesSource = {
     "openmaptiles": {
         "type": "vector",
-        "url": `pmtiles://${location.protocol}//${location.host}/${import.meta.env.VITE_BASE_NAME}.pmtiles` // pmtiles file at public folder
+        "url": pmtilesURL
     }
 }
 style.sources = pmtilesSource;
