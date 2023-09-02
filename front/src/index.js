@@ -15,7 +15,7 @@ import style from '../../style/osmt-kumejima.json' // change style here
 const pmtilesSource = {
     "openmaptiles": {
         "type": "vector",
-        "url": `pmtiles://${location.protocol}//${location.host}/kyushu-latest.pmtiles` // pmtiles file at public folder
+        "url": `pmtiles://${location.protocol}//${location.host}/${import.meta.env.VITE_BASE_NAME}.pmtiles` // pmtiles file at public folder
     }
 }
 style.sources = pmtilesSource;

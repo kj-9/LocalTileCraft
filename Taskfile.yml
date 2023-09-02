@@ -2,6 +2,10 @@
 
 version: '3'
 
+
+vars:
+  BASE_NAME: kyushu-latest
+
 tasks:
   #install-tilemaker:
   # need to build from source. see https://github.com/systemed/tilemaker#installing
@@ -20,17 +24,19 @@ tasks:
       - wget -P data https://download.geofabrik.de/asia/japan/kyushu-latest.osm.pbf
     status:
       - test -f data/kyushu-latest.osm.pbf
+    # or you can dowoload from https://app.protomaps.com/downloads/osm
 
   make-mbtiles:
     dir: tilemaker/
     deps: [dl-water, dl-pbf] # install-tilemaker
     cmds:
-      - tilemaker --input ../data/kyushu-latest.osm.pbf --output ../data/kyushu-latest.mbtiles --config config/config-openmaptiles.json --process config/process-openmaptiles-kumejima.lua
+      - tilemaker --input ../data/{{.BASE_NAME}}.osm.pbf --output ../data/{{.BASE_NAME}}.mbtiles --config config/config-openmaptiles.json --process config/process-openmaptiles-kumejima.lua
     sources:
-      - tilemaker/config/config-openmaptiles.json
-      - tilemaker/config/process-openmaptiles-kumejima.lua
+      - ../data/{{.BASE_NAME}}.osm.pbf
+      - config/config-openmaptiles.json
+      - config/process-openmaptiles-kumejima.lua
     generates:
-      - data/kyushu-latest.mbtiles
+      - ../data/{{.BASE_NAME}}.mbtiles
     method: timestamp
 
 
@@ -44,7 +50,7 @@ tasks:
     deps: [make-mbtiles, install-tileserver]
     cmds:
       # `--no-cors` option does not work: see also: [link to issue]
-      - tileserver-gl-light data/kyushu-latest.mbtiles --port 8081
+      - tileserver-gl-light data/{{.BASE_NAME}}.mbtiles --port 8081
 
   install-pmtiles:
     cmds:
@@ -56,11 +62,11 @@ tasks:
   make-pmtiles:
     deps: [install-pmtiles, make-mbtiles]
     cmds:
-      - ./pmtiles convert data/kyushu-latest.mbtiles data/kyushu-latest.pmtiles
+      - ./pmtiles convert data/{{.BASE_NAME}}.mbtiles data/{{.BASE_NAME}}.pmtiles
     sources:
-      - data/kyushu-latest.mbtiles
+      - data/{{.BASE_NAME}}.mbtiles
     generates:
-      - data/kyushu-latest.pmtiles
+      - data/{{.BASE_NAME}}.pmtiles
     method: timestamp
 
   serve-pmtiles:
@@ -83,18 +89,24 @@ tasks:
       - pnpm install
     status:
       - test -d node_modules
+    
+  # see also: https://ja.vitejs.dev/guide/env-and-mode.html#env-files
+  prep-front:
+    deps: [install-front]
+    dir: front/
+    cmds:
+      - cp ../data/{{.BASE_NAME}}.pmtiles public/{{.BASE_NAME}}.pmtiles
+      - echo "VITE_BASE_NAME={{.BASE_NAME}}" > .env
 
   serve-front:
-    deps: [install-front]
+    deps: [prep-front]
     dir: front/
     cmds:
-      - pnpm dev
-
+      - BASE_NAME={{.BASE_NAME}} pnpm dev
   build-front:
-    deps: [install-front]
+    deps: [prep-front]
     dir: front/
     cmds:
-      - cp ../data/kyushu-latest.pmtiles public/kyushu-latest.pmtiles
       - pnpm build
 
   preview-front:
