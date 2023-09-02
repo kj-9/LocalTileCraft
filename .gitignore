@@ -4,3 +4,6 @@ pmtiles
 # ignore large data
 tilemaker/coastline/
 data/
+
+# taskfile cache
+.task/
