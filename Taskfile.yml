@@ -77,17 +77,24 @@ tasks:
     cmds:
       - open -u http://localhost:8888
 
-  serve-export:
+  install-front:
+    dir: front/
+    cmds:
+      - pnpm install
+    status:
+      - test -d node_modules
+
+  serve-front:
+    deps: [install-front]
     dir: front/
     cmds:
       - pnpm dev
 
-  run-export:
-    deps: [serve-pmtiles, serve-export]
-
   build-front:
+    deps: [install-front]
     dir: front/
     cmds:
+      - cp ../data/kyushu-latest.pmtiles public/kyushu-latest.pmtiles
       - pnpm build
 
   preview-front:
