@@ -33,11 +33,18 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Pages
         uses: actions/configure-pages@v3
+      - name: Install Task
+        uses: arduino/setup-task@v1
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          package_json_file: ./front/package.json
+      - run: task build-front
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
           # Upload entire repository
-          path: './dist'
+          path: './front/dist'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
