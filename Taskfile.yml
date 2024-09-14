@@ -5,6 +5,7 @@ version: '3'
 
 vars:
   BASE_NAME: kyushu-latest
+  NPM_MANAGER: npm # {{.NPM_MANAGER}} not working for tileserver-gl-light
 
 tasks:
   #install-tilemaker:
@@ -42,7 +43,7 @@ tasks:
 
   install-tileserver:
     cmds:
-      - pnpm install -g tileserver-gl-light
+      - '{{.NPM_MANAGER}} install tileserver-gl-light'
     status: 
       - tileserver-gl-light --version
 
@@ -86,7 +87,7 @@ tasks:
   install-front:
     dir: front/
     cmds:
-      - pnpm install
+      - "{{.NPM_MANAGER}} install"
     status:
       - test -d node_modules
     
@@ -102,15 +103,15 @@ tasks:
     deps: [prep-front]
     dir: front/
     cmds:
-      - BASE_NAME={{.BASE_NAME}} pnpm dev
+      - BASE_NAME={{.BASE_NAME}} {{.NPM_MANAGER}} dev
   build-front:
     deps: [prep-front]
     dir: front/
     cmds:
-      - pnpm build
+      - "{{.NPM_MANAGER}} build"
 
   preview-front:
     dir: front/
     deps: [build-front]
     cmds:
-      - pnpm preview
+      - "{{.NPM_MANAGER}} preview"
